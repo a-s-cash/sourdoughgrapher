@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logistic Function Graph</title>
+    <title>Sourdough Tracker</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  <!-- Chart.js for graphing -->
     <style>
         body {
@@ -28,18 +28,36 @@
 <body>
     <div class="input-container">
         <h2>Logistic Function Inputs</h2>
-        <label for="r">Growth Rate (r):</label>
-        <input type="number" id="r" placeholder="Enter growth rate" step="0.01">
         
-        <label for="k">Carrying Capacity (K):</label>
-        <input type="number" id="k" placeholder="Enter carrying capacity">
+        <label for="grams starter">Grams of Starter (g):</label>
+        <input type="number" id="S" placeholder="Enter grams of starter (g)" step="0.01">
         
-        <label for="p0">Initial Population (P0):</label>
-        <input type="number" id="p0" placeholder="Enter initial population">
+        
+        <label for="grams AP">Grams of AP Flour (g):</label>
+        <input type="number" id="AP" placeholder="Enter grams of AP flour (g)" step="0.01">
+        
+        <label for="grams WW">Grams of Other Flour (g):</label>
+        <input type="number" id="WW" placeholder="Enter grams of other types of flour (g)" step="0.01">
+        
+        <label for="grams water">Grams of Water (g):</label>
+        <input type="number" id="W" placeholder="Enter grams of water (g)" step="0.01">
+        
+        
+        <label for="IT">Initial Temperature (F°):</label>
+        <input type="number" id="IT" placeholder="Enter initial temperature (F°)" step="0.01">
+        
+        <label for="AT">Ambient Temperature (F°):</label>
+        <input type="number" id="AT" placeholder="Enter ambient temperature (F°)">
+        
+        <label for="A">Activity Level of Starter (0-4):</label>
+        <input type="number" id="A" placeholder="Enter activity level of starter on a scale from 0-4">
         
         <label for="tMax">Max Time (t):</label>
-        <input type="number" id="tMax" placeholder="Enter max time" value="100">
-        
+        <input type="number" id="tMax" placeholder="Enter maximum time for the graph (e.g. 100)" step="1">
+
+        <p id="starterPercentage">Starter Percentage: N/A</p>
+        <p id="otherFlourPercentage">Other Flour Percentage: N/A</p>
+        <button onclick="calculatePercentages()">Calculate Percentages</button>
         <button onclick="generateGraph()">Generate Graph</button>
     </div>
     <div class="graph-container">
@@ -47,26 +65,70 @@
     </div>
 
     <script>
-        function logisticFunction(r, K, P0, t) {
-            return K / (1 + ((K - P0) / P0) * Math.exp(-r * t));
-        }
+        const coefficientsMatrix = [
+            [-39.8464290533585, 0.439110177177445, -0.0236465746771963, 0.0169817435690994, 6.07257889928508, 1.33653549298473, -4.28698519043463], // K coefficients
+            [10.4109848297146, -0.122773174855113, 0.000642182792801124, -0.00517530121138070, 0.250748424946177, 0.0733600347460909, -1.05054426204847], // r coefficients
+            [-96.3899669516444, 0.780672472241403, -0.0768608461664437, 0.0443050687521287, 14.0952183134734, 9.18135325752611, 1.00581702407497] // P0 coefficients
+        ];
 
+        function logisticFunction(r, K, P0, t) {
+            return K / (1 + Math.exp(-r(t-P0)));
+        }
+        function calculatePercentages() {
+            const S = parseFloat(document.getElementById('S').value) || 0;
+            const AP = parseFloat(document.getElementById('AP').value) || 0;
+            const WW = parseFloat(document.getElementById('WW').value) || 0;
+
+            const totalFlour = AP + WW;
+
+            if (totalFlour > 0) {
+                const starterPercentage = (S / totalFlour) * 100;
+                const otherFlourPercentage = (WW / totalFlour) * 100;
+
+                document.getElementById('starterPercentage').textContent = `Starter Percentage: ${starterPercentage.toFixed(2)}%`;
+                document.getElementById('otherFlourPercentage').textContent = `Other Flour Percentage: ${otherFlourPercentage.toFixed(2)}%`;
+            } else {
+                document.getElementById('starterPercentage').textContent = `Starter Percentage: N/A`;
+                document.getElementById('otherFlourPercentage').textContent = `Other Flour Percentage: N/A`;
+    }
+}
         function generateGraph() {
             // Get input values
-            const r = parseFloat(document.getElementById('r').value);
-            const K = parseFloat(document.getElementById('k').value);
-            const P0 = parseFloat(document.getElementById('p0').value);
-            const tMax = parseInt(document.getElementById('tMax').value);
+            const S = parseFloat(document.getElementById('S').value);
+            const AP = parseFloat(document.getElementById('AP').value);
+            const WW = parseFloat(document.getElementById('WW').value);
+            const W = parseFloat(document.getElementById('W').value);
+            const IT = parseFloat(document.getElementById('IT').value);
+            const AT = parseFloat(document.getElementById('AT').value);
+            const A = parseFloat(document.getElementById('A').value);
 
-            if (isNaN(r) || isNaN(K) || isNaN(P0) || isNaN(tMax)) {
+            // Fixed total volume and starter concentration
+            const totalVolume = 200;
+            const starterConcentration = S / (AP + WW);
+            const percentOtherFlour = WW / (AP + WW);
+
+            // Create an input array matching the matrix order
+            const inputs = [1, IT, AT, totalVolume, starterConcentration, A, percentOtherFlour];
+
+        
+
+            // Matrix multiplication to calculate K, r, and P0
+            const K = inputs.reduce((sum, value, i) => sum + value * coefficientsMatrix[0][i], 0);
+            const r = inputs.reduce((sum, value, i) => sum + value * coefficientsMatrix[1][i], 0);
+            const P0 = inputs.reduce((sum, value, i) => sum + value * coefficientsMatrix[2][i], 0);
+
+            // Check for missing input values
+            if (isNaN(K) || isNaN(r) || isNaN(P0)) {
                 alert("Please enter all values correctly.");
                 return;
             }
 
+            // Prepare to graph
+            const tMax = parseInt(document.getElementById('tMax').value);
             const tValues = [];
             const pValues = [];
 
-            // Calculate logistic values
+            // Logistic function calculation
             for (let t = 0; t <= tMax; t++) {
                 tValues.push(t);
                 pValues.push(logisticFunction(r, K, P0, t));
