@@ -1,13 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My First Website</title>
-    <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logistic Function Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  <!-- Chart.js for graphing -->
+    <style>
+        body {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+        }
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            width: 40%;
+        }
+        .graph-container {
+            width: 55%;
+        }
+        input {
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello, World!</h1>
-    <p>Welcome to my website!</p>
+    <div class="input-container">
+        <h2>Logistic Function Inputs</h2>
+        <label for="r">Growth Rate (r):</label>
+        <input type="number" id="r" placeholder="Enter growth rate" step="0.01">
+        
+        <label for="k">Carrying Capacity (K):</label>
+        <input type="number" id="k" placeholder="Enter carrying capacity">
+        
+        <label for="p0">Initial Population (P0):</label>
+        <input type="number" id="p0" placeholder="Enter initial population">
+        
+        <label for="tMax">Max Time (t):</label>
+        <input type="number" id="tMax" placeholder="Enter max time" value="100">
+        
+        <button onclick="generateGraph()">Generate Graph</button>
+    </div>
+    <div class="graph-container">
+        <canvas id="logisticGraph"></canvas>
+    </div>
+
+    <script>
+        function logisticFunction(r, K, P0, t) {
+            return K / (1 + ((K - P0) / P0) * Math.exp(-r * t));
+        }
+
+        function generateGraph() {
+            // Get input values
+            const r = parseFloat(document.getElementById('r').value);
+            const K = parseFloat(document.getElementById('k').value);
+            const P0 = parseFloat(document.getElementById('p0').value);
+            const tMax = parseInt(document.getElementById('tMax').value);
+
+            if (isNaN(r) || isNaN(K) || isNaN(P0) || isNaN(tMax)) {
+                alert("Please enter all values correctly.");
+                return;
+            }
+
+            const tValues = [];
+            const pValues = [];
+
+            // Calculate logistic values
+            for (let t = 0; t <= tMax; t++) {
+                tValues.push(t);
+                pValues.push(logisticFunction(r, K, P0, t));
+            }
+
+            // Create the chart
+            const ctx = document.getElementById('logisticGraph').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: tValues,
+                    datasets: [{
+                        label: 'Logistic Growth',
+                        data: pValues,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (t)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Population (P)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
 </body>
 </html>
