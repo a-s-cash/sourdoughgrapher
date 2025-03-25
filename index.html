@@ -72,8 +72,9 @@
         ];
 
         function logisticFunction(r, K, P0, t) {
-            return K / (1 + Math.exp(-r(t-P0)));
+            return K / (1 + Math.exp(-r * (t - P0)));
         }
+
         function calculatePercentages() {
             const S = parseFloat(document.getElementById('S').value) || 0;
             const AP = parseFloat(document.getElementById('AP').value) || 0;
@@ -90,8 +91,9 @@
             } else {
                 document.getElementById('starterPercentage').textContent = `Starter Percentage: N/A`;
                 document.getElementById('otherFlourPercentage').textContent = `Other Flour Percentage: N/A`;
-    }
-}
+            }
+        }
+
         function generateGraph() {
             // Get input values
             const S = parseFloat(document.getElementById('S').value);
@@ -102,6 +104,12 @@
             const AT = parseFloat(document.getElementById('AT').value);
             const A = parseFloat(document.getElementById('A').value);
 
+            // Validate inputs
+            if (isNaN(S) || isNaN(AP) || isNaN(WW) || isNaN(IT) || isNaN(AT) || isNaN(A)) {
+                alert("Please fill out all input fields.");
+                return;
+            }
+
             // Fixed total volume and starter concentration
             const totalVolume = 200;
             const starterConcentration = S / (AP + WW);
@@ -110,21 +118,25 @@
             // Create an input array matching the matrix order
             const inputs = [1, IT, AT, totalVolume, starterConcentration, A, percentOtherFlour];
 
-        
-
             // Matrix multiplication to calculate K, r, and P0
             const K = inputs.reduce((sum, value, i) => sum + value * coefficientsMatrix[0][i], 0);
             const r = inputs.reduce((sum, value, i) => sum + value * coefficientsMatrix[1][i], 0);
             const P0 = inputs.reduce((sum, value, i) => sum + value * coefficientsMatrix[2][i], 0);
 
-            // Check for missing input values
+            // Check for missing or invalid results
             if (isNaN(K) || isNaN(r) || isNaN(P0)) {
-                alert("Please enter all values correctly.");
+                alert("Please enter valid values.");
+                return;
+            }
+
+            // Get the max time (tMax) and validate it
+            const tMax = parseInt(document.getElementById('tMax').value);
+            if (isNaN(tMax) || tMax <= 0) {
+                alert("Please enter a valid value for the maximum time (t).");
                 return;
             }
 
             // Prepare to graph
-            const tMax = parseInt(document.getElementById('tMax').value);
             const tValues = [];
             const pValues = [];
 
@@ -135,7 +147,13 @@
             }
 
             // Create the chart
-            const ctx = document.getElementById('logisticGraph').getContext('2d');
+            const canvas = document.getElementById('logisticGraph');
+            if (!canvas) {
+                alert("Canvas element not found.");
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
             new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -165,6 +183,8 @@
                     }
                 }
             });
+
+            console.log('Chart created successfully!');
         }
     </script>
 </body>
