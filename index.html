@@ -27,21 +27,18 @@
 </head>
 <body>
     <div class="input-container">
-        <h2>Logistic Function Inputs</h2>
+        <h2>Starter Data</h2>
         
         <label for="grams starter">Grams of Starter (g):</label>
-        <input type="number" id="S" placeholder="Enter grams of starter (g)" step="0.01">
-        
+        <input type="number" id="S" placeholder="Enter grams of starter (g)" step="0.01" oninput="calculatePercentages()">
         
         <label for="grams AP">Grams of AP Flour (g):</label>
-        <input type="number" id="AP" placeholder="Enter grams of AP flour (g)" step="0.01">
+        <input type="number" id="AP" placeholder="Enter grams of AP flour (g)" step="0.01" oninput="calculatePercentages()">
         
         <label for="grams WW">Grams of Other Flour (g):</label>
-        <input type="number" id="WW" placeholder="Enter grams of other types of flour (g)" step="0.01">
+        <input type="number" id="WW" placeholder="Enter grams of other types of flour (g)" step="0.01" oninput="calculatePercentages()">
         
-        <label for="grams water">Grams of Water (g):</label>
-        <input type="number" id="W" placeholder="Enter grams of water (g)" step="0.01">
-        
+        <!-- Removed the Grams of Water input field as requested -->
         
         <label for="IT">Initial Temperature (F°):</label>
         <input type="number" id="IT" placeholder="Enter initial temperature (F°)" step="0.01">
@@ -57,7 +54,7 @@
 
         <p id="starterPercentage">Starter Percentage: N/A</p>
         <p id="otherFlourPercentage">Other Flour Percentage: N/A</p>
-        <button onclick="calculatePercentages()">Calculate Percentages</button>
+
         <button onclick="generateGraph()">Generate Graph</button>
     </div>
     <div class="graph-container">
@@ -75,6 +72,7 @@
             return K / (1 + Math.exp(-r * (t - P0)));
         }
 
+        // Function to calculate percentages and update the display
         function calculatePercentages() {
             const S = parseFloat(document.getElementById('S').value) || 0;
             const AP = parseFloat(document.getElementById('AP').value) || 0;
@@ -99,7 +97,6 @@
             const S = parseFloat(document.getElementById('S').value);
             const AP = parseFloat(document.getElementById('AP').value);
             const WW = parseFloat(document.getElementById('WW').value);
-            const W = parseFloat(document.getElementById('W').value);
             const IT = parseFloat(document.getElementById('IT').value);
             const AT = parseFloat(document.getElementById('AT').value);
             const A = parseFloat(document.getElementById('A').value);
@@ -146,15 +143,17 @@
                 pValues.push(logisticFunction(r, K, P0, t));
             }
 
-            // Create the chart
+            // Get the canvas and its context
             const canvas = document.getElementById('logisticGraph');
-            if (!canvas) {
-                alert("Canvas element not found.");
-                return;
+            const ctx = canvas.getContext('2d');
+
+            // If there's an existing chart, destroy it before creating a new one
+            if (window.chartInstance) {
+                window.chartInstance.destroy();
             }
 
-            const ctx = canvas.getContext('2d');
-            new Chart(ctx, {
+            // Create the new chart
+            window.chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: tValues,
@@ -177,7 +176,7 @@
                         y: {
                             title: {
                                 display: true,
-                                text: 'Population (P)'
+                                text: 'Percent Growth (%)'
                             }
                         }
                     }
@@ -186,6 +185,7 @@
 
             console.log('Chart created successfully!');
         }
+
     </script>
 </body>
 </html>
