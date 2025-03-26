@@ -10,6 +10,7 @@
             display: flex;
             justify-content: space-between;
             padding: 20px;
+            font-family: 'Times New Roman', Times, serif;
         }
         .input-container {
             display: flex;
@@ -23,38 +24,45 @@
             margin-bottom: 10px;
             padding: 5px;
         }
+        .subtitle {
+            font-size: 0.8em;
+            color: gray;
+            margin-bottom: 10px;
+        }
+        h2 {
+            font-size: 1.4em; /* Shrink title font size */
+        }
     </style>
 </head>
 <body>
     <div class="input-container">
-        <h2>Starter Data</h2>
+        <h2>Sourdough Starter Data<br /> 
+        <strong style="font-weight:normal"><font size="3">Enter the data for your sourdough starter to see a graph of its growth!</font></strong>
+        </h2>
         
-        <label for="grams starter">Grams of Starter (g):</label>
-        <input type="number" id="S" placeholder="Enter grams of starter (g)" step="0.01" oninput="calculatePercentages()">
+        <label for="grams starter">Grams of Starter:</label>
+        <input type="number" id="S" placeholder="Enter amount of starter in grams (e.g. 100)" step="0.01" oninput="updatePercentages()">
         
         <label for="grams AP">Grams of AP Flour (g):</label>
-        <input type="number" id="AP" placeholder="Enter grams of AP flour (g)" step="0.01" oninput="calculatePercentages()">
+        <input type="number" id="AP" placeholder="Enter amount of AP flour in grams (e.g. 100)" step="0.01" oninput="updatePercentages()">
         
-        <label for="grams WW">Grams of Other Flour (g):</label>
-        <input type="number" id="WW" placeholder="Enter grams of other types of flour (g)" step="0.01" oninput="calculatePercentages()">
+        <label for="grams WW">Amount of Other Flour (g):</label>
+        <input type="number" id="WW" placeholder="Enter amount of other flour in grams (e.g. 15)" step="0.01" oninput="updatePercentages()">
         
-        <!-- Removed the Grams of Water input field as requested -->
+        <label for="IT">Initial Temperature (°F):</label>
+        <input type="number" id="IT" placeholder="Enter ambient temperature in Farenheit (e.g. 70)" step="0.01">
         
-        <label for="IT">Initial Temperature (F°):</label>
-        <input type="number" id="IT" placeholder="Enter initial temperature (F°)" step="0.01">
-        
-        <label for="AT">Ambient Temperature (F°):</label>
-        <input type="number" id="AT" placeholder="Enter ambient temperature (F°)">
+        <label for="AT">Ambient Temperature (°F):</label>
+        <input type="number" id="AT" placeholder="Enter ambient temperature in Farenheit (e.g. 67)">
         
         <label for="A">Activity Level of Starter (0-4):</label>
         <input type="number" id="A" placeholder="Enter activity level of starter on a scale from 0-4">
         
-        <label for="tMax">Max Time (t):</label>
+        <label for="tMax">Max Time (hours):</label>
         <input type="number" id="tMax" placeholder="Enter maximum time for the graph (e.g. 100)" step="1">
 
         <p id="starterPercentage">Starter Percentage: N/A</p>
         <p id="otherFlourPercentage">Other Flour Percentage: N/A</p>
-
         <button onclick="generateGraph()">Generate Graph</button>
     </div>
     <div class="graph-container">
@@ -72,8 +80,7 @@
             return K / (1 + Math.exp(-r * (t - P0)));
         }
 
-        // Function to calculate percentages and update the display
-        function calculatePercentages() {
+        function updatePercentages() {
             const S = parseFloat(document.getElementById('S').value) || 0;
             const AP = parseFloat(document.getElementById('AP').value) || 0;
             const WW = parseFloat(document.getElementById('WW').value) || 0;
@@ -176,7 +183,7 @@
                         y: {
                             title: {
                                 display: true,
-                                text: 'Percent Growth (%)'
+                                text: 'Population (P)'
                             }
                         }
                     }
