@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sourdough Tracker</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  <!-- Chart.js for graphing -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             display: flex;
@@ -30,36 +30,33 @@
             margin-bottom: 10px;
         }
         h2 {
-            font-size: 1.4em; /* Shrink title font size */
+            font-size: 1.4em;
         }
     </style>
 </head>
 <body>
     <div class="input-container">
-        <h2>Sourdough Starter Data<br /> 
-        <strong style="font-weight:normal"><font size="3">Enter the data for your sourdough starter to see a graph of its growth!</font></strong>
+        <h2>Sourdough Starter Grapher<br /> 
+        <strong style="font-weight:normal"><font size="3">Enter the inputs for your sourdough starter to see a graph of its growth!</font></strong>
         </h2>
         
-        <label for="grams starter">Grams of Starter:</label>
+        <label for="grams starter">Amount of Starter:</label>
         <input type="number" id="S" placeholder="Enter amount of starter in grams (e.g. 100)" step="0.01" oninput="updatePercentages()">
         
-        <label for="grams AP">Grams of AP Flour (g):</label>
+        <label for="grams AP">Amount of AP Flour (g):</label>
         <input type="number" id="AP" placeholder="Enter amount of AP flour in grams (e.g. 100)" step="0.01" oninput="updatePercentages()">
         
         <label for="grams WW">Amount of Other Flour (g):</label>
         <input type="number" id="WW" placeholder="Enter amount of other flour in grams (e.g. 15)" step="0.01" oninput="updatePercentages()">
         
         <label for="IT">Initial Temperature (°F):</label>
-        <input type="number" id="IT" placeholder="Enter ambient temperature in Farenheit (e.g. 70)" step="0.01">
+        <input type="number" id="IT" placeholder="Enter ambient temperature in Fahrenheit (e.g. 70)" step="0.01">
         
         <label for="AT">Ambient Temperature (°F):</label>
-        <input type="number" id="AT" placeholder="Enter ambient temperature in Farenheit (e.g. 67)">
-        
-        <label for="A">Activity Level of Starter (0-4):</label>
-        <input type="number" id="A" placeholder="Enter activity level of starter on a scale from 0-4">
+        <input type="number" id="AT" placeholder="Enter ambient temperature in Fahrenheit (e.g. 67)">
         
         <label for="tMax">Max Time (hours):</label>
-        <input type="number" id="tMax" placeholder="Enter maximum time for the graph (e.g. 100)" step="1">
+        <input type="number" id="tMax" placeholder="Enter maximum time for the graph (e.g. 12)" step="1">
 
         <p id="starterPercentage">Starter Percentage: N/A</p>
         <p id="otherFlourPercentage">Other Flour Percentage: N/A</p>
@@ -71,9 +68,9 @@
 
     <script>
         const coefficientsMatrix = [
-            [-39.8464290533585, 0.439110177177445, -0.0236465746771963, 0.0169817435690994, 6.07257889928508, 1.33653549298473, -4.28698519043463], // K coefficients
-            [10.4109848297146, -0.122773174855113, 0.000642182792801124, -0.00517530121138070, 0.250748424946177, 0.0733600347460909, -1.05054426204847], // r coefficients
-            [-96.3899669516444, 0.780672472241403, -0.0768608461664437, 0.0443050687521287, 14.0952183134734, 9.18135325752611, 1.00581702407497] // P0 coefficients
+            [-0.3385, -0.0075, 0.0307, 0.0468, 0.0819], // K coefficients
+            [-1.2702, 0.0097, 0.0132, 0.2911, 0.6407], // r coefficients
+            [12.6801, -0.0552, 0.0379, -5.1466, -3.7097] // P0 coefficients
         ];
 
         function logisticFunction(r, K, P0, t) {
@@ -100,66 +97,55 @@
         }
 
         function generateGraph() {
-            // Get input values
             const S = parseFloat(document.getElementById('S').value);
             const AP = parseFloat(document.getElementById('AP').value);
             const WW = parseFloat(document.getElementById('WW').value);
             const IT = parseFloat(document.getElementById('IT').value);
             const AT = parseFloat(document.getElementById('AT').value);
-            const A = parseFloat(document.getElementById('A').value);
 
-            // Validate inputs
-            if (isNaN(S) || isNaN(AP) || isNaN(WW) || isNaN(IT) || isNaN(AT) || isNaN(A)) {
+            if (isNaN(S) || isNaN(AP) || isNaN(WW) || isNaN(IT) || isNaN(AT)) {
                 alert("Please fill out all input fields.");
                 return;
             }
 
-            // Fixed total volume and starter concentration
-            const totalVolume = 200;
-            const starterConcentration = S / (AP + WW);
-            const percentOtherFlour = WW / (AP + WW);
+            const totalFlour = AP + WW;
+            const starterConcentration = S / totalFlour;
+            const percentOtherFlour = WW / totalFlour;
 
             // Create an input array matching the matrix order
-            const inputs = [1, IT, AT, totalVolume, starterConcentration, A, percentOtherFlour];
+            const inputs = [1, IT, AT, starterConcentration, percentOtherFlour];
 
             // Matrix multiplication to calculate K, r, and P0
             const K = inputs.reduce((sum, value, i) => sum + value * coefficientsMatrix[0][i], 0);
             const r = inputs.reduce((sum, value, i) => sum + value * coefficientsMatrix[1][i], 0);
             const P0 = inputs.reduce((sum, value, i) => sum + value * coefficientsMatrix[2][i], 0);
 
-            // Check for missing or invalid results
             if (isNaN(K) || isNaN(r) || isNaN(P0)) {
-                alert("Please enter valid values.");
+                alert("Invalid calculated values.");
                 return;
             }
 
-            // Get the max time (tMax) and validate it
             const tMax = parseInt(document.getElementById('tMax').value);
             if (isNaN(tMax) || tMax <= 0) {
-                alert("Please enter a valid value for the maximum time (t).");
+                alert("Please enter a valid value for the maximum time.");
                 return;
             }
 
-            // Prepare to graph
             const tValues = [];
             const pValues = [];
 
-            // Logistic function calculation
             for (let t = 0; t <= tMax; t++) {
                 tValues.push(t);
                 pValues.push(logisticFunction(r, K, P0, t));
             }
 
-            // Get the canvas and its context
             const canvas = document.getElementById('logisticGraph');
             const ctx = canvas.getContext('2d');
 
-            // If there's an existing chart, destroy it before creating a new one
             if (window.chartInstance) {
                 window.chartInstance.destroy();
             }
 
-            // Create the new chart
             window.chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -183,7 +169,7 @@
                         y: {
                             title: {
                                 display: true,
-                                text: 'Population (P)'
+                                text: 'Percent Volume Growth (%)'
                             }
                         }
                     }
@@ -192,7 +178,6 @@
 
             console.log('Chart created successfully!');
         }
-
     </script>
 </body>
 </html>
